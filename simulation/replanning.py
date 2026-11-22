@@ -14,3 +14,13 @@ def find_unavailable_routes(galaxy):
 
 def replan_mission_route(galaxy, mission):
     return calculate_mission_route(galaxy, mission)
+def is_plan_affected(path, unavailable_routes):
+    for i in range(len(path) - 1):
+        for route in unavailable_routes:
+            if (
+                route.origin == path[i]
+                and route.destination == path[i + 1]
+            ):
+                return True
+
+    return False

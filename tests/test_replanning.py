@@ -6,6 +6,7 @@ from simulation.replanning import find_unavailable_routes
 from models.planet import Planet
 from models.mission import Mission
 from simulation.replanning import replan_mission_route
+from simulation.replanning import is_plan_affected
 
 
 class TestReplanning(unittest.TestCase):
@@ -96,6 +97,25 @@ class TestReplanning(unittest.TestCase):
         result = replan_mission_route(self.galaxy, mission)
 
         self.assertIsNone(result)
+    def test_is_plan_affected(self):
+        self.route.is_available = False
+
+        result = is_plan_affected(
+            ["Earth", "Mars"],
+            [self.route]
+        )
+
+        self.assertTrue(result)
+
+    def test_is_plan_not_affected(self):
+        self.route.is_available = False
+
+        result = is_plan_affected(
+            ["Earth", "Jupiter", "Mars"],
+            [self.route]
+        )
+
+        self.assertFalse(result)
 
 
 if __name__ == "__main__":
