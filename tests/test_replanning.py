@@ -199,6 +199,32 @@ class TestReplanning(unittest.TestCase):
             ["Earth", "Jupiter", "Mars"]
         )
         self.assertTrue(result["replanned"])
+    def test_update_mission_plan_without_alternative_route(self):
+        earth = Planet(
+            "Earth", 100, {}, {}, {}, 500, 5, 3, 8, 0, 0
+        )
+        mars = Planet(
+            "Mars", 80, {}, {}, {}, 400, 4, 3, 7, 20, 0
+        )
+
+        self.galaxy.add_planet(earth)
+        self.galaxy.add_planet(mars)
+
+        self.route.is_available = False
+
+        mission = Mission(
+            "Mission 5", "Earth", "Mars",
+            "food", 10, 100, 5, 8, []
+        )
+
+        result = update_mission_plan(
+            self.galaxy,
+            mission,
+            ["Earth", "Mars"]
+        )
+
+        self.assertIsNone(result["path"])
+        self.assertTrue(result["replanned"])
 
 
 if __name__ == "__main__":
