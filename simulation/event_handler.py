@@ -34,6 +34,15 @@ def apply_dynamic_event(galaxy, event):
             event.activate_event()
             galaxy.add_event(event)
             return True
+    elif event.event_type == "spacecraft_destroyed":
+        spacecraft = galaxy.spacecraft.get(event.affected_location)
+
+        if spacecraft is not None:
+            spacecraft.is_operational = False
+
+            event.activate_event()
+            galaxy.add_event(event)
+            return True
 
     return False
 

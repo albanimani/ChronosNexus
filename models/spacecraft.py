@@ -23,6 +23,7 @@ class Spacecraft:
         self.operating_cost = operating_cost
         self.capabilities = capabilities
         self.available_at = available_at
+        self.is_operational = True
 
     def has_enough_fuel(self, required_fuel):
         return self.current_fuel >= required_fuel

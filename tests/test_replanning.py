@@ -365,6 +365,40 @@ class TestReplanning(unittest.TestCase):
         self.assertTrue(result)
         self.assertEqual(planet.resource_production["food"], 40)
         self.assertEqual(event.status, "active")
+    def test_destroy_spacecraft_with_dynamic_event(self):
+        from models.spacecraft import Spacecraft
+        from models.dynamic_event import DynamicEvent
+
+        spacecraft = Spacecraft(
+            "Explorer",
+            "Earth",
+            100,
+            200,
+            150,
+            10,
+            0.9,
+            50,
+            ["transport"],
+            0
+        )
+
+        self.galaxy.add_spacecraft(spacecraft)
+
+        event = DynamicEvent(
+            "Spacecraft Destruction",
+            "spacecraft_destroyed",
+            "Explorer",
+            "Spacecraft destroyed",
+            1,
+            10,
+            5
+        )
+
+        result = apply_dynamic_event(self.galaxy, event)
+
+        self.assertTrue(result)
+        self.assertFalse(spacecraft.is_operational)
+        self.assertEqual(event.status, "active")
 
 
 if __name__ == "__main__":
