@@ -4,7 +4,8 @@ from models.infrastructure import Infrastructure
 from algorithms.infrastructure_selection import (
     calculate_infrastructure_value,
     can_build_infrastructure,
-    filter_affordable_infrastructures
+    filter_affordable_infrastructures,
+    select_infrastructure
 )
 
 
@@ -77,6 +78,39 @@ class TestInfrastructureSelection(unittest.TestCase):
         )
 
         self.assertEqual(result, [solar_plant])
+    def test_select_infrastructure(self):
+        solar_plant = Infrastructure(
+            "Solar Plant",
+            "energy",
+            "Mars",
+            100,
+            {"energy": 50},
+            10,
+            20,
+            8,
+            7,
+            5
+        )
+
+        hospital = Infrastructure(
+            "Hospital",
+            "health",
+            "Earth",
+            200,
+            {"medicine": 30},
+            20,
+            15,
+            9,
+            8,
+            10
+        )
+
+        result = select_infrastructure(
+            [solar_plant, hospital],
+            200
+        )
+
+        self.assertEqual(result, 17)
 
     
 
