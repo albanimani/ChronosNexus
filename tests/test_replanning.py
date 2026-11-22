@@ -322,6 +322,24 @@ class TestReplanning(unittest.TestCase):
 
         self.assertFalse(result)
         self.assertEqual(event.status, "pending")
+    def test_increase_route_risk_with_dynamic_event(self):
+        from models.dynamic_event import DynamicEvent
+
+        event = DynamicEvent(
+            "Pirate Attack",
+            "route_risk_increase",
+            "Earth-Mars",
+            "Route risk increased",
+            0.3,
+            10,
+            5
+        )
+
+        result = apply_dynamic_event(self.galaxy, event)
+
+        self.assertTrue(result)
+        self.assertEqual(self.route.risk, 0.4)
+        self.assertEqual(event.status, "active")
 
 
 if __name__ == "__main__":
