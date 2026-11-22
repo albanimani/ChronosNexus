@@ -8,6 +8,7 @@ from models.mission import Mission
 from simulation.replanning import replan_mission_route
 from simulation.replanning import is_plan_affected
 from simulation.replanning import needs_replanning
+from simulation.replanning import update_mission_plan
 
 
 class TestReplanning(unittest.TestCase):
@@ -134,6 +135,70 @@ class TestReplanning(unittest.TestCase):
         )
 
         self.assertFalse(result)
+    def test_keep_existing_plan_when_route_is_available(self):
+        earth = Planet(
+            "Earth", 100, {}, {}, {}, 500, 5, 3, 8, 0, 0
+        )
+        mars = Planet(
+            "Mars", 80, {}, {}, {}, 400, 4, 3, 7, 20, 0
+        )
+
+        self.galaxy.add_planet(earth)
+        self.galaxy.add_planet(mars)
+
+        mission = Mission(
+            "Mission 3", "Earth", "Mars",
+            "food", 10, 100, 5, 8, []
+        )
+
+        result = update_mission_plan(
+            self.galaxy,
+            mission,
+            ["Earth", "Mars"]
+        )
+
+        self.assertEqual(result["path"], ["Earth", "Mars"])
+        self.assertFalse(result["replanned"])
+    def test_update_mission_plan_after_route_blockage(self):
+        earth = Planet(
+            "Earth", 100, {}, {}, {}, 500, 5, 3, 8, 0, 0
+        )
+        mars = Planet(
+            "Mars", 80, {}, {}, {}, 400, 4, 3, 7, 20, 0
+        )
+        jupiter = Planet(
+            "Jupiter", 50, {}, {}, {}, 300, 6, 5, 9, 10, 10
+        )
+
+        self.galaxy.add_planet(earth)
+        self.galaxy.add_planet(mars)
+        self.galaxy.add_planet(jupiter)
+
+        self.galaxy.add_route(
+            Route("Earth", "Jupiter", 15, 5, 10, 0.1, 50, 0.9, True)
+        )
+        self.galaxy.add_route(
+            Route("Jupiter", "Mars", 15, 5, 10, 0.1, 50, 0.9, True)
+        )
+
+        self.route.is_available = False
+
+        mission = Mission(
+            "Mission 4", "Earth", "Mars",
+            "food", 10, 100, 5, 8, []
+        )
+
+        result = update_mission_plan(
+            self.galaxy,
+            mission,
+            ["Earth", "Mars"]
+        )
+
+        self.assertEqual(
+            result["path"],
+            ["Earth", "Jupiter", "Mars"]
+        )
+        self.assertTrue(result["replanned"])
 
 
 if __name__ == "__main__":
