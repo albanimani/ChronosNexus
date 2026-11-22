@@ -3,7 +3,8 @@ import unittest
 from models.infrastructure import Infrastructure
 from algorithms.infrastructure_selection import (
     calculate_infrastructure_value,
-    can_build_infrastructure
+    can_build_infrastructure,
+    filter_affordable_infrastructures
 )
 
 
@@ -43,6 +44,41 @@ class TestInfrastructureSelection(unittest.TestCase):
         result = can_build_infrastructure(infrastructure, 150)
 
         self.assertTrue(result)
+    def test_filter_affordable_infrastructures(self):
+        solar_plant = Infrastructure(
+            "Solar Plant",
+            "energy",
+            "Mars",
+            100,
+            {"energy": 50},
+            10,
+            20,
+            8,
+            7,
+            5
+        )
+
+        hospital = Infrastructure(
+            "Hospital",
+            "health",
+            "Earth",
+            200,
+            {"medicine": 30},
+            20,
+            15,
+            9,
+            8,
+            10
+        )
+
+        result = filter_affordable_infrastructures(
+            [solar_plant, hospital],
+            150
+        )
+
+        self.assertEqual(result, [solar_plant])
+
+    
 
 
 if __name__ == "__main__":
