@@ -340,6 +340,31 @@ class TestReplanning(unittest.TestCase):
         self.assertTrue(result)
         self.assertEqual(self.route.risk, 0.4)
         self.assertEqual(event.status, "active")
+    def test_reduce_resource_production_with_dynamic_event(self):
+        from models.dynamic_event import DynamicEvent
+
+        planet = Planet(
+            "Earth", 100, {"food": 100}, {"food": 70},
+            {"food": 50}, 500, 5, 3, 8, 0, 0
+        )
+
+        self.galaxy.add_planet(planet)
+
+        event = DynamicEvent(
+            "Crop Failure",
+            "production_decrease",
+            "Earth",
+            "Food production decreased",
+            0.6,
+            10,
+            5
+        )
+
+        result = apply_dynamic_event(self.galaxy, event)
+
+        self.assertTrue(result)
+        self.assertEqual(planet.resource_production["food"], 40)
+        self.assertEqual(event.status, "active")
 
 
 if __name__ == "__main__":

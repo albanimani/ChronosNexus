@@ -22,6 +22,18 @@ def apply_dynamic_event(galaxy, event):
                     event.activate_event()
                     galaxy.add_event(event)
                     return True
+    elif event.event_type == "production_decrease":
+        planet = galaxy.planets.get(event.affected_location)
+
+        if planet is not None:
+            for resource in planet.resource_production:
+                planet.resource_production[resource] *= (
+                    1 - event.impact
+                )
+
+            event.activate_event()
+            galaxy.add_event(event)
+            return True
 
     return False
 
