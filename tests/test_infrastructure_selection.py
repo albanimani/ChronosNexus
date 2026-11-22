@@ -113,6 +113,28 @@ class TestInfrastructureSelection(unittest.TestCase):
         self.assertEqual(result["selected"], [hospital])
         self.assertEqual(result["total_value"], 17)
         self.assertEqual(result["total_cost"], 200)
+    def test_select_infrastructure_without_enough_budget(self):
+        solar_plant = Infrastructure(
+            "Solar Plant",
+            "energy",
+            "Mars",
+            100,
+            {"energy": 50},
+            10,
+            20,
+            8,
+            7,
+            5
+        )
+
+        result = select_infrastructure(
+            [solar_plant],
+            50
+        )
+
+        self.assertEqual(result["selected"], [])
+        self.assertEqual(result["total_value"], 0)
+        self.assertEqual(result["total_cost"], 0)
 
     
 
