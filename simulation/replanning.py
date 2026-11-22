@@ -24,3 +24,7 @@ def is_plan_affected(path, unavailable_routes):
                 return True
 
     return False
+
+def needs_replanning(galaxy, path):
+    unavailable_routes = find_unavailable_routes(galaxy)
+    return is_plan_affected(path, unavailable_routes)

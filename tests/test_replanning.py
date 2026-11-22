@@ -7,6 +7,7 @@ from models.planet import Planet
 from models.mission import Mission
 from simulation.replanning import replan_mission_route
 from simulation.replanning import is_plan_affected
+from simulation.replanning import needs_replanning
 
 
 class TestReplanning(unittest.TestCase):
@@ -113,6 +114,23 @@ class TestReplanning(unittest.TestCase):
         result = is_plan_affected(
             ["Earth", "Jupiter", "Mars"],
             [self.route]
+        )
+
+        self.assertFalse(result)
+    def test_needs_replanning_when_route_is_blocked(self):
+        self.route.is_available = False
+
+        result = needs_replanning(
+            self.galaxy,
+            ["Earth", "Mars"]
+        )
+
+        self.assertTrue(result)
+
+    def test_does_not_need_replanning_when_route_is_available(self):
+        result = needs_replanning(
+            self.galaxy,
+            ["Earth", "Mars"]
         )
 
         self.assertFalse(result)
