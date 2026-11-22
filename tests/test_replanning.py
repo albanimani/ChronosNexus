@@ -10,6 +10,8 @@ from simulation.replanning import is_plan_affected
 from simulation.replanning import needs_replanning
 from simulation.replanning import update_mission_plan
 from simulation.replanning import replan_affected_missions
+from simulation.event_handler import apply_dynamic_event
+
 
 
 class TestReplanning(unittest.TestCase):
@@ -286,6 +288,40 @@ class TestReplanning(unittest.TestCase):
             ["Earth", "Venus"]
         )
         self.assertFalse(updated_plans["Mission 2"]["replanned"])
+    def test_block_route_with_dynamic_event(self):
+        from models.dynamic_event import DynamicEvent
+
+        event = DynamicEvent(
+            "Wormhole Collapse",
+            "route_blockage",
+            "Earth-Mars",
+            "Route blocked",
+            1,
+            10,
+            5
+        )
+
+        apply_dynamic_event(self.galaxy, event)
+
+        self.assertFalse(self.route.is_available)
+        self.assertEqual(event.status, "active")
+    def test_dynamic_event_for_nonexistent_route(self):
+        from models.dynamic_event import DynamicEvent
+
+        event = DynamicEvent(
+            "Unknown Route",
+            "route_blockage",
+            "Earth-Jupiter",
+            "Route does not exist",
+            1,
+            10,
+            5
+        )
+
+        result = apply_dynamic_event(self.galaxy, event)
+
+        self.assertFalse(result)
+        self.assertEqual(event.status, "pending")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,15 @@
+def apply_dynamic_event(galaxy, event):
+    if event.event_type == "route_blockage":
+        for routes in galaxy.routes.values():
+            for route in routes:
+                route_name = f"{route.origin}-{route.destination}"
+
+                if route_name == event.affected_location:
+                    route.is_available = False
+
+                    event.activate_event()
+                    galaxy.add_event(event)
+                    return True
+
+    return False
+
