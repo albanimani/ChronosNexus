@@ -35,4 +35,26 @@ def select_infrastructure(infrastructures, budget):
                     value + dp[i - 1][current_budget - cost]
                 )
 
+    selected = []
+    remaining_budget = budget
+
+    for i in range(count, 0, -1):
+        if dp[i][remaining_budget] != dp[i - 1][remaining_budget]:
+            infrastructure = infrastructures[i - 1]
+            selected.append(infrastructure)
+            remaining_budget -= infrastructure.construction_cost
+
+    selected.reverse()
+
+    total_cost = sum(
+        infrastructure.construction_cost
+        for infrastructure in selected
+    )
+
+    return {
+        "selected": selected,
+        "total_value": dp[count][budget],
+        "total_cost": total_cost
+    }
+
     return dp[count][budget]

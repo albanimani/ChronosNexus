@@ -110,7 +110,9 @@ class TestInfrastructureSelection(unittest.TestCase):
             200
         )
 
-        self.assertEqual(result, 17)
+        self.assertEqual(result["selected"], [hospital])
+        self.assertEqual(result["total_value"], 17)
+        self.assertEqual(result["total_cost"], 200)
 
     
 
