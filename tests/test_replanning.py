@@ -9,6 +9,7 @@ from simulation.replanning import replan_mission_route
 from simulation.replanning import is_plan_affected
 from simulation.replanning import needs_replanning
 from simulation.replanning import update_mission_plan
+from simulation.replanning import replan_affected_missions
 
 
 class TestReplanning(unittest.TestCase):
@@ -225,6 +226,66 @@ class TestReplanning(unittest.TestCase):
 
         self.assertIsNone(result["path"])
         self.assertTrue(result["replanned"])
+    def test_replan_only_affected_missions(self):
+        earth = Planet(
+            "Earth", 100, {}, {}, {}, 500, 5, 3, 8, 0, 0
+        )
+        mars = Planet(
+            "Mars", 80, {}, {}, {}, 400, 4, 3, 7, 20, 0
+        )
+        venus = Planet(
+            "Venus", 60, {}, {}, {}, 300, 4, 2, 6, 10, 10
+        )
+
+        self.galaxy.add_planet(earth)
+        self.galaxy.add_planet(mars)
+        self.galaxy.add_planet(venus)
+
+        alternative_route = Route(
+            "Earth", "Venus", 50, 5, 10, 0.1, 50, 0.9, True
+        )
+        destination_route = Route(
+            "Venus", "Mars", 60, 6, 10, 0.1, 50, 0.9, True
+        )
+
+        self.galaxy.add_route(alternative_route)
+        self.galaxy.add_route(destination_route)
+
+        mission_plans = {
+            "Mission 1": ["Earth", "Mars"],
+            "Mission 2": ["Earth", "Venus"]
+        }
+        mission1 = Mission(
+            "Mission 1", "Earth", "Mars",
+            "food", 10, 100, 5, 8, []
+        )
+
+        mission2 = Mission(
+            "Mission 2", "Earth", "Venus",
+            "food", 10, 100, 5, 8, []
+        )
+
+        self.galaxy.add_mission(mission1)
+        self.galaxy.add_mission(mission2)
+
+        self.route.is_available = False
+
+        updated_plans = replan_affected_missions(
+            self.galaxy,
+            mission_plans
+        )
+
+        self.assertEqual(
+            updated_plans["Mission 1"]["path"],
+            ["Earth", "Venus", "Mars"]
+        )
+        self.assertTrue(updated_plans["Mission 1"]["replanned"])
+
+        self.assertEqual(
+            updated_plans["Mission 2"]["path"],
+            ["Earth", "Venus"]
+        )
+        self.assertFalse(updated_plans["Mission 2"]["replanned"])
 
 
 if __name__ == "__main__":

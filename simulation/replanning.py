@@ -28,3 +28,42 @@ def is_plan_affected(path, unavailable_routes):
 def needs_replanning(galaxy, path):
     unavailable_routes = find_unavailable_routes(galaxy)
     return is_plan_affected(path, unavailable_routes)
+def update_mission_plan(galaxy, mission, current_path):
+    if not needs_replanning(galaxy, current_path):
+        return {
+            "path": current_path,
+            "replanned": False
+        }
+
+    new_route = replan_mission_route(galaxy, mission)
+
+    if new_route is None:
+        return {
+            "path": None,
+            "replanned": True
+        }
+
+    return {
+        "path": new_route["path"],
+        "replanned": True
+    }
+def replan_affected_missions(galaxy, mission_plans):
+    updated_plans = {}
+
+    for mission_name, current_path in mission_plans.items():
+        mission = galaxy.missions.get(mission_name)
+
+        if mission is None:
+            updated_plans[mission_name] = {
+                "path": current_path,
+                "replanned": False
+            }
+            continue
+
+        updated_plans[mission_name] = update_mission_plan(
+            galaxy,
+            mission,
+            current_path
+        )
+
+    return updated_plans
