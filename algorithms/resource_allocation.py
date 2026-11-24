@@ -70,4 +70,79 @@ def allocate_resources(galaxy, resource):
                 if deficit_amount <= 0:
                     break
 
+
     return allocations
+
+def plan_proactive_resource_supply(galaxy, resource, periods):
+    if periods < 0:
+        raise ValueError("Periods cannot be negative")
+
+    surplus_planets = []
+    deficit_planets = []
+
+    for planet in galaxy.planets.values():
+        inventory = planet.inventory.get(resource, 0)
+        production = planet.resource_production.get(resource, 0)
+        consumption = planet.resource_consumption.get(resource, 0)
+
+        future_amount = inventory + (
+            production - consumption
+        ) * periods
+
+        if future_amount > 0:
+            surplus_planets.append((planet, future_amount))
+        elif future_amount < 0:
+            deficit_planets.append((planet, abs(future_amount)))
+
+    remaining_surplus = {
+        planet.name: amount
+        for planet, amount in surplus_planets
+    }
+
+    allocations = []
+
+    for deficit_planet, deficit_amount in deficit_planets:
+        for surplus_planet, original_amount in surplus_planets:
+            surplus_amount = remaining_surplus[surplus_planet.name]
+
+            if surplus_amount <= 0:
+                continue
+
+            available_routes = [
+                route
+                for route in galaxy.get_routes_from(surplus_planet.name)
+                if route.destination == deficit_planet.name
+                and route.is_available
+            ]
+
+            if not available_routes:
+                continue
+
+            route = min(
+                available_routes,
+                key=lambda route: route.distance
+            )
+
+            amount = min(
+                surplus_amount,
+                deficit_amount,
+                route.capacity
+            )
+
+            if amount > 0:
+                allocations.append({
+                    "from": surplus_planet.name,
+                    "to": deficit_planet.name,
+                    "resource": resource,
+                    "amount": amount,
+                    "distance": route.distance
+                })
+
+                remaining_surplus[surplus_planet.name] -= amount
+                deficit_amount -= amount
+
+                if deficit_amount <= 0:
+                    break
+
+    return allocations
+

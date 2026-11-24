@@ -6,7 +6,8 @@ from models.planet import Planet
 from models.route import Route
 from algorithms.resource_allocation import (
     identify_resource_needs,
-    allocate_resources
+    allocate_resources,
+    plan_proactive_resource_supply
 )
 
 
@@ -112,6 +113,53 @@ class TestResourceAllocation(unittest.TestCase):
         self.assertEqual(total_allocated, 30)
         self.assertEqual(result[0]["amount"], 20)
         self.assertEqual(result[1]["amount"], 10)
+    def test_plan_proactive_resource_supply(self):
+        route = Route(
+            "Earth", "Mars", 10, 2, 5, 0.1, 100, 0.9, True
+        )
+
+        self.galaxy.add_route(route)
+
+        result = plan_proactive_resource_supply(
+            self.galaxy,
+            "food",
+            2
+        )
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["from"], "Earth")
+        self.assertEqual(result[0]["to"], "Mars")
+        self.assertEqual(result[0]["resource"], "food")
+        self.assertEqual(result[0]["amount"], 40)
+    def test_proactive_supply_without_available_route(self):
+        route = Route(
+            "Earth", "Mars", 10, 2, 5, 0.1, 100, 0.9, False
+        )
+
+        self.galaxy.add_route(route)
+
+        result = plan_proactive_resource_supply(
+            self.galaxy,
+            "food",
+            2
+        )
+
+        self.assertEqual(result, [])
+    def test_proactive_supply_respects_route_capacity(self):
+        route = Route(
+            "Earth", "Mars", 10, 2, 5, 0.1, 15, 0.9, True
+        )
+
+        self.galaxy.add_route(route)
+
+        result = plan_proactive_resource_supply(
+            self.galaxy,
+            "food",
+            2
+        )
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["amount"], 15)
 
 
 
