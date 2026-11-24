@@ -1,11 +1,14 @@
+
 def calculate_infrastructure_value(infrastructure):
     return (
         infrastructure.strategic_value
         + infrastructure.development_value
     )
 
+
 def can_build_infrastructure(infrastructure, budget):
     return infrastructure.fits_budget(budget)
+
 
 def filter_affordable_infrastructures(infrastructures, budget):
     return [
@@ -13,7 +16,12 @@ def filter_affordable_infrastructures(infrastructures, budget):
         for infrastructure in infrastructures
         if can_build_infrastructure(infrastructure, budget)
     ]
+
+
 def select_infrastructure(infrastructures, budget):
+    if budget < 0:
+        raise ValueError("Budget cannot be negative")
+
     count = len(infrastructures)
 
     dp = [
@@ -56,5 +64,3 @@ def select_infrastructure(infrastructures, budget):
         "total_value": dp[count][budget],
         "total_cost": total_cost
     }
-
-    return dp[count][budget]

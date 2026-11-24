@@ -157,6 +157,62 @@ class TestInfrastructureSelection(unittest.TestCase):
         self.assertEqual(result["selected"], [])
         self.assertEqual(result["total_value"], 0)
         self.assertEqual(result["total_cost"], 0)
+    def test_select_combination_of_infrastructures(self):
+        solar_plant = Infrastructure(
+            "Solar Plant",
+            "energy",
+            "Mars",
+            100,
+            {"energy": 50},
+            10,
+            20,
+            8,
+            7,
+            5
+        )
+
+        hospital = Infrastructure(
+            "Hospital",
+            "health",
+            "Earth",
+            200,
+            {"medicine": 30},
+            20,
+            15,
+            9,
+            8,
+            10
+        )
+
+        result = select_infrastructure(
+            [solar_plant, hospital],
+            300
+        )
+
+        self.assertEqual(
+            result["selected"],
+            [solar_plant, hospital]
+        )
+        self.assertEqual(result["total_value"], 32)
+        self.assertEqual(result["total_cost"], 300)
+    def test_infrastructure_with_negative_cost(self):
+        with self.assertRaises(ValueError):
+            Infrastructure(
+                "Solar Plant",
+                "energy",
+                "Mars",
+                -100,
+                {"energy": 50},
+                10,
+                20,
+                8,
+                7,
+                5
+            )
+    def test_select_infrastructure_with_negative_budget(self):
+        with self.assertRaises(ValueError):
+            select_infrastructure([], -100)
+
 
     
 

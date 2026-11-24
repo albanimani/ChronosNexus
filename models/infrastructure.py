@@ -12,6 +12,8 @@ class Infrastructure:
         development_value,
         construction_time
     ):
+        if construction_cost < 0:
+            raise ValueError("Construction cost cannot be negative")
         self.name = name
         self.facility_type = facility_type
         self.location = location
