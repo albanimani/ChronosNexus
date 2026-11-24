@@ -1,17 +1,17 @@
+
 import unittest
 
 from models.galaxy import Galaxy
 from models.route import Route
-from simulation.replanning import find_unavailable_routes
 from models.planet import Planet
 from models.mission import Mission
+from simulation.replanning import find_unavailable_routes
 from simulation.replanning import replan_mission_route
 from simulation.replanning import is_plan_affected
 from simulation.replanning import needs_replanning
 from simulation.replanning import update_mission_plan
 from simulation.replanning import replan_affected_missions
 from simulation.event_handler import apply_dynamic_event
-
 
 
 class TestReplanning(unittest.TestCase):
@@ -37,12 +37,14 @@ class TestReplanning(unittest.TestCase):
         self.route.is_available = False
 
         self.assertFalse(self.route.is_available)
+
     def test_find_unavailable_routes(self):
         self.route.is_available = False
 
         result = find_unavailable_routes(self.galaxy)
 
         self.assertEqual(result, [self.route])
+
     def test_replan_mission_with_alternative_route(self):
         earth = Planet(
             "Earth", 100, {}, {}, {}, 500, 5, 3, 8, 0, 0
@@ -81,6 +83,7 @@ class TestReplanning(unittest.TestCase):
             result["path"],
             ["Earth", "Jupiter", "Mars"]
         )
+
     def test_replan_mission_without_alternative_route(self):
         earth = Planet(
             "Earth", 100, {}, {}, {}, 500, 5, 3, 8, 0, 0
@@ -102,6 +105,7 @@ class TestReplanning(unittest.TestCase):
         result = replan_mission_route(self.galaxy, mission)
 
         self.assertIsNone(result)
+
     def test_is_plan_affected(self):
         self.route.is_available = False
 
@@ -121,6 +125,7 @@ class TestReplanning(unittest.TestCase):
         )
 
         self.assertFalse(result)
+
     def test_needs_replanning_when_route_is_blocked(self):
         self.route.is_available = False
 
@@ -138,6 +143,7 @@ class TestReplanning(unittest.TestCase):
         )
 
         self.assertFalse(result)
+
     def test_keep_existing_plan_when_route_is_available(self):
         earth = Planet(
             "Earth", 100, {}, {}, {}, 500, 5, 3, 8, 0, 0
@@ -162,6 +168,7 @@ class TestReplanning(unittest.TestCase):
 
         self.assertEqual(result["path"], ["Earth", "Mars"])
         self.assertFalse(result["replanned"])
+
     def test_update_mission_plan_after_route_blockage(self):
         earth = Planet(
             "Earth", 100, {}, {}, {}, 500, 5, 3, 8, 0, 0
@@ -202,6 +209,7 @@ class TestReplanning(unittest.TestCase):
             ["Earth", "Jupiter", "Mars"]
         )
         self.assertTrue(result["replanned"])
+
     def test_update_mission_plan_without_alternative_route(self):
         earth = Planet(
             "Earth", 100, {}, {}, {}, 500, 5, 3, 8, 0, 0
@@ -228,6 +236,7 @@ class TestReplanning(unittest.TestCase):
 
         self.assertIsNone(result["path"])
         self.assertTrue(result["replanned"])
+
     def test_replan_only_affected_missions(self):
         earth = Planet(
             "Earth", 100, {}, {}, {}, 500, 5, 3, 8, 0, 0
@@ -257,6 +266,7 @@ class TestReplanning(unittest.TestCase):
             "Mission 1": ["Earth", "Mars"],
             "Mission 2": ["Earth", "Venus"]
         }
+
         mission1 = Mission(
             "Mission 1", "Earth", "Mars",
             "food", 10, 100, 5, 8, []
@@ -288,6 +298,7 @@ class TestReplanning(unittest.TestCase):
             ["Earth", "Venus"]
         )
         self.assertFalse(updated_plans["Mission 2"]["replanned"])
+
     def test_block_route_with_dynamic_event(self):
         from models.dynamic_event import DynamicEvent
 
@@ -305,6 +316,7 @@ class TestReplanning(unittest.TestCase):
 
         self.assertFalse(self.route.is_available)
         self.assertEqual(event.status, "active")
+
     def test_dynamic_event_for_nonexistent_route(self):
         from models.dynamic_event import DynamicEvent
 
@@ -322,6 +334,7 @@ class TestReplanning(unittest.TestCase):
 
         self.assertFalse(result)
         self.assertEqual(event.status, "pending")
+
     def test_increase_route_risk_with_dynamic_event(self):
         from models.dynamic_event import DynamicEvent
 
@@ -340,6 +353,7 @@ class TestReplanning(unittest.TestCase):
         self.assertTrue(result)
         self.assertEqual(self.route.risk, 0.4)
         self.assertEqual(event.status, "active")
+
     def test_reduce_resource_production_with_dynamic_event(self):
         from models.dynamic_event import DynamicEvent
 
@@ -365,6 +379,7 @@ class TestReplanning(unittest.TestCase):
         self.assertTrue(result)
         self.assertEqual(planet.resource_production["food"], 40)
         self.assertEqual(event.status, "active")
+
     def test_destroy_spacecraft_with_dynamic_event(self):
         from models.spacecraft import Spacecraft
         from models.dynamic_event import DynamicEvent
@@ -399,6 +414,33 @@ class TestReplanning(unittest.TestCase):
         self.assertTrue(result)
         self.assertFalse(spacecraft.is_operational)
         self.assertEqual(event.status, "active")
+
+    def test_dynamic_event_cannot_be_applied_twice(self):
+        from models.dynamic_event import DynamicEvent
+
+        planet = Planet(
+            "Earth", 100, {"food": 100}, {"food": 70},
+            {"food": 50}, 500, 5, 3, 8, 0, 0
+        )
+
+        self.galaxy.add_planet(planet)
+
+        event = DynamicEvent(
+            "Crop Failure",
+            "production_decrease",
+            "Earth",
+            "Food production decreased",
+            0.6,
+            10,
+            5
+        )
+
+        first_result = apply_dynamic_event(self.galaxy, event)
+        second_result = apply_dynamic_event(self.galaxy, event)
+
+        self.assertTrue(first_result)
+        self.assertFalse(second_result)
+        self.assertEqual(planet.resource_production["food"], 40)
 
 
 if __name__ == "__main__":

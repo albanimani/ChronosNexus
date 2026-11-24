@@ -1,4 +1,8 @@
+
 def apply_dynamic_event(galaxy, event):
+    if event.status != "pending":
+        return False
+
     if event.event_type == "route_blockage":
         for routes in galaxy.routes.values():
             for route in routes:
@@ -22,6 +26,7 @@ def apply_dynamic_event(galaxy, event):
                     event.activate_event()
                     galaxy.add_event(event)
                     return True
+
     elif event.event_type == "production_decrease":
         planet = galaxy.planets.get(event.affected_location)
 
@@ -34,6 +39,7 @@ def apply_dynamic_event(galaxy, event):
             event.activate_event()
             galaxy.add_event(event)
             return True
+
     elif event.event_type == "spacecraft_destroyed":
         spacecraft = galaxy.spacecraft.get(event.affected_location)
 
@@ -45,4 +51,3 @@ def apply_dynamic_event(galaxy, event):
             return True
 
     return False
-
