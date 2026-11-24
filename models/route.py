@@ -1,3 +1,4 @@
+
 class Route:
     def __init__(
         self,
@@ -11,6 +12,24 @@ class Route:
         reliability,
         is_available
     ):
+        if distance < 0:
+            raise ValueError("Distance cannot be negative")
+
+        if travel_time < 0:
+            raise ValueError("Travel time cannot be negative")
+
+        if fuel_consumption < 0:
+            raise ValueError("Fuel consumption cannot be negative")
+
+        if risk < 0:
+            raise ValueError("Risk cannot be negative")
+
+        if capacity < 0:
+            raise ValueError("Capacity cannot be negative")
+
+        if not 0 <= reliability <= 1:
+            raise ValueError("Reliability must be between 0 and 1")
+
         self.origin = origin
         self.destination = destination
         self.distance = distance

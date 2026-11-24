@@ -5,6 +5,7 @@ from models.planet import Planet
 from models.route import Route
 from algorithms.route_planning import a_star_search
 from algorithms.route_planning import calculate_route_cost
+from algorithms.route_planning import calculate_max_speed
 
 class TestRoutePlanning(unittest.TestCase):
 
@@ -100,6 +101,12 @@ class TestRoutePlanning(unittest.TestCase):
         )
 
         self.assertGreater(unreliable_cost, reliable_cost)
+    def test_calculate_max_speed_ignores_zero_travel_time(self):
+        self.galaxy.add_route(
+        Route("Earth", "Jupiter", 5, 0, 2, 0.1, 100, 0.9, True)
+    )
+
+        self.assertEqual(calculate_max_speed(self.galaxy), 5)
 
 
 if __name__ == "__main__":

@@ -45,7 +45,7 @@ def calculate_mission_route(galaxy, mission):
         )
 
         total_fuel += route.fuel_consumption
-        total_time += route.travel_time
+        total_time += route.calculate_expected_travel_time()
 
     return {
         "path": path,

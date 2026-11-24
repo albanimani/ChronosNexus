@@ -1,31 +1,22 @@
 import heapq
 import math
 
+
 def calculate_max_speed(galaxy):
     max_speed = 0
 
     for routes in galaxy.routes.values():
         for route in routes:
-            speed = route.distance / route.travel_time
-            max_speed = max(max_speed, speed)
+            if route.travel_time > 0:
+                speed = route.distance / route.travel_time
+                max_speed = max(max_speed, speed)
 
     return max_speed
 
+
 def heuristic(galaxy, planet1, planet2, weights, max_speed=None):
-    if max_speed is None:
-        max_speed = calculate_max_speed(galaxy)
+    return 0
 
-    if max_speed <= 0:
-        return 0
-
-    distance = math.sqrt(
-        (planet1.x - planet2.x) ** 2
-        + (planet1.y - planet2.y) ** 2
-    )
-
-    estimated_time = distance / max_speed
-
-    return estimated_time * weights["time"]
 
 def calculate_route_cost(route, weights):
     cost = (
@@ -37,7 +28,7 @@ def calculate_route_cost(route, weights):
 
     return cost
 
-    return cost
+
 def a_star_search(galaxy, start_name, goal_name, weights):
     if start_name not in galaxy.planets or goal_name not in galaxy.planets:
         return None
@@ -61,6 +52,7 @@ def a_star_search(galaxy, start_name, goal_name, weights):
             galaxy, start_planet, goal_planet, weights, max_speed
         )
     }
+
     while open_list:
         current_priority, current_name = heapq.heappop(open_list)
 

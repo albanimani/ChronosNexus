@@ -63,6 +63,33 @@ class TestRoute(unittest.TestCase):
             route.calculate_expected_travel_time(),
             float("inf")
         )
+    
+    def test_negative_distance(self):
+        with self.assertRaises(ValueError):
+            Route("Earth", "Mars", -10, 5, 80, 0.2, 100, 0.9, True)
+
+    def test_negative_travel_time(self):
+        with self.assertRaises(ValueError):
+            Route("Earth", "Mars", 10, -5, 80, 0.2, 100, 0.9, True)
+
+    def test_negative_fuel_consumption(self):
+        with self.assertRaises(ValueError):
+            Route("Earth", "Mars", 10, 5, -80, 0.2, 100, 0.9, True)
+
+    def test_negative_risk(self):
+        with self.assertRaises(ValueError):
+            Route("Earth", "Mars", 10, 5, 80, -0.2, 100, 0.9, True)
+
+    def test_negative_capacity(self):
+        with self.assertRaises(ValueError):
+            Route("Earth", "Mars", 10, 5, 80, 0.2, -100, 0.9, True)
+
+    def test_invalid_reliability(self):
+        for reliability in [-0.1, 1.1]:
+            with self.subTest(reliability=reliability):
+                with self.assertRaises(ValueError):
+                    Route("Earth", "Mars", 10, 5, 80, 0.2, 100, reliability, True)
+
 
 
 if __name__ == "__main__":
