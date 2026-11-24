@@ -26,3 +26,9 @@ class Route:
 
     def calculate_failure_probability(self):
         return 1 - self.reliability
+
+    def calculate_expected_travel_time(self):
+        if self.reliability <= 0:
+            return float("inf")
+
+        return self.travel_time / self.reliability

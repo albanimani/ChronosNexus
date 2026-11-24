@@ -4,7 +4,7 @@ from models.galaxy import Galaxy
 from models.planet import Planet
 from models.route import Route
 from algorithms.route_planning import a_star_search
-
+from algorithms.route_planning import calculate_route_cost
 
 class TestRoutePlanning(unittest.TestCase):
 
@@ -82,6 +82,24 @@ class TestRoutePlanning(unittest.TestCase):
         )
 
         self.assertEqual(result, (["Earth"], 0))
+    def test_route_reliability_affects_cost(self):
+        reliable_route = Route(
+            "Earth", "Mars", 10, 5, 5, 0.1, 100, 0.9, True
+        )
+
+        unreliable_route = Route(
+            "Earth", "Mars", 10, 5, 5, 0.1, 100, 0.5, True
+        )
+
+        reliable_cost = calculate_route_cost(
+            reliable_route, self.weights
+        )
+
+        unreliable_cost = calculate_route_cost(
+            unreliable_route, self.weights
+        )
+
+        self.assertGreater(unreliable_cost, reliable_cost)
 
 
 if __name__ == "__main__":

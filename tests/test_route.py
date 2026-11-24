@@ -40,6 +40,29 @@ class TestRoute(unittest.TestCase):
             self.route.calculate_failure_probability(),
             0.1
         )
+    def test_expected_travel_time(self):
+        self.assertAlmostEqual(
+            self.route.calculate_expected_travel_time(),
+            5.5555555556
+        )
+
+    def test_expected_travel_time_with_zero_reliability(self):
+        route = Route(
+            "Earth",
+            "Mars",
+            150,
+            5,
+            80,
+            0.2,
+            100,
+            0,
+            True
+        )
+
+        self.assertEqual(
+            route.calculate_expected_travel_time(),
+            float("inf")
+        )
 
 
 if __name__ == "__main__":

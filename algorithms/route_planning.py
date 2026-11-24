@@ -31,9 +31,11 @@ def calculate_route_cost(route, weights):
     cost = (
         route.distance * weights["distance"]
         + route.fuel_consumption * weights["fuel"]
-        + route.travel_time * weights["time"]
+        + route.calculate_expected_travel_time() * weights["time"]
         + route.risk * weights["risk"]
     )
+
+    return cost
 
     return cost
 def a_star_search(galaxy, start_name, goal_name, weights):
