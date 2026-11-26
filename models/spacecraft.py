@@ -35,4 +35,4 @@ class Spacecraft:
         return set(required_capabilities).issubset(self.capabilities)
 
     def is_available(self, departure_time):
-        return self.available_at <= departure_time
+       return self.is_operational and self.available_at <= departure_time

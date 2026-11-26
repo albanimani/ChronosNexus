@@ -17,7 +17,8 @@ def calculate_mission_route(galaxy, mission):
         galaxy,
         mission.origin,
         mission.destination,
-        weights
+        weights,
+        mission.cargo_amount
     )
 
     if result is None:
@@ -34,6 +35,7 @@ def calculate_mission_route(galaxy, mission):
             for route in galaxy.get_routes_from(path[i])
             if route.destination == path[i + 1]
             and route.is_available
+            and route.capacity >= mission.cargo_amount
         ]
 
         if not available_routes:
@@ -124,6 +126,7 @@ def schedule_mission(galaxy, mission, departure_time):
     )
 
     selected_spacecraft.current_location = mission.destination
+    selected_spacecraft.current_fuel -= route_info["total_fuel"]
     selected_spacecraft.available_at = (
         departure_time + route_info["total_time"]
     )

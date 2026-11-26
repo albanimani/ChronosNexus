@@ -29,7 +29,7 @@ def calculate_route_cost(route, weights):
     return cost
 
 
-def a_star_search(galaxy, start_name, goal_name, weights):
+def a_star_search(galaxy, start_name, goal_name, weights, required_capacity=0):
     global search_count
     search_count += 1
     if start_name not in galaxy.planets or goal_name not in galaxy.planets:
@@ -68,6 +68,8 @@ def a_star_search(galaxy, start_name, goal_name, weights):
 
         for route in galaxy.get_routes_from(current_name):
             if not route.is_available:
+                continue
+            if route.capacity < required_capacity:
                 continue
 
             neighbor_name = route.destination

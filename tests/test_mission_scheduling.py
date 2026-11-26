@@ -315,6 +315,36 @@ class TestMissionScheduling(unittest.TestCase):
         )
 
         self.assertIsNone(result)
+    
+    def test_schedule_mission_consumes_fuel(self):
+        route = Route(
+            "Earth", "Mars", 10, 2, 5, 0.1, 100, 0.9, True
+        )
+
+        spacecraft = Spacecraft(
+            "Explorer",
+            "Earth",
+            100,
+            200,
+            150,
+            10,
+            0.95,
+            50,
+            [],
+            0
+        )
+
+        self.galaxy.add_route(route)
+        self.galaxy.add_spacecraft(spacecraft)
+
+        schedule_mission(
+            self.galaxy,
+            self.mission,
+            10
+        )
+
+        self.assertEqual(spacecraft.current_fuel, 145)
+
 
 
 if __name__ == "__main__":
