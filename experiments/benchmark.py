@@ -9,6 +9,10 @@ from models.spacecraft import Spacecraft
 from models.mission import Mission
 import tracemalloc
 from algorithms.route_planning import a_star_search
+from algorithms.resource_allocation import allocate_resources
+from algorithms.mission_scheduling import schedule_missions
+from algorithms import route_planning
+from algorithms.resource_allocation import plan_proactive_resource_supply
 
 
 def generate_galaxy(
@@ -139,6 +143,28 @@ def measure_memory(
         num_missions
     )
 
+    weights = {
+        "distance": 1,
+        "fuel": 1,
+        "time": 1,
+        "risk": 1
+    }
+
+    a_star_search(
+        galaxy,
+        "Planet-0",
+        f"Planet-{len(galaxy.planets) - 1}",
+        weights
+    )
+
+    allocate_resources(galaxy, "energy")
+
+    schedule_missions(
+    galaxy,
+    list(galaxy.missions.values()),
+    0
+)
+
     current_memory, peak_memory = tracemalloc.get_traced_memory()
 
     tracemalloc.stop()
@@ -170,6 +196,49 @@ def measure_route_planning(galaxy):
 
     return execution_time, result
 
+def measure_resource_allocation(galaxy):
+    start_time = time.perf_counter()
+
+    result = allocate_resources(galaxy, "energy")
+
+    end_time = time.perf_counter()
+
+    execution_time = end_time - start_time
+
+    start_time = time.perf_counter()
+
+    proactive_result = plan_proactive_resource_supply(
+        galaxy, "energy", 10
+    )
+
+    end_time = time.perf_counter()
+
+    proactive_execution_time = end_time - start_time
+
+    return (
+        execution_time,
+        result,
+        proactive_execution_time,
+        proactive_result
+    )
+
+def measure_mission_scheduling(galaxy):
+    missions = list(galaxy.missions.values())
+
+    route_planning.search_count = 0
+
+    start_time = time.perf_counter()
+
+    result = schedule_missions(galaxy, missions, 0)
+
+    searches = route_planning.search_count
+
+    end_time = time.perf_counter()
+
+    execution_time = end_time - start_time
+
+    return execution_time, result, searches
+
 def run_benchmarks():
     datasets = {
         "Small": (100, 500, 50, 50),
@@ -183,6 +252,14 @@ def run_benchmarks():
         execution_time, galaxy = measure_execution_time(*values)
         memory, _ = measure_memory(*values)
         route_planning_time, route_result = measure_route_planning(galaxy)
+        (
+            resource_allocation_time,
+            allocation_result,
+            proactive_resource_time,
+            proactive_result
+        ) = measure_resource_allocation(galaxy)
+        scheduling_galaxy = generate_galaxy(*values)
+        mission_scheduling_time, scheduling_result, searches = measure_mission_scheduling(scheduling_galaxy)
 
         results[name] = {
             "planets": len(galaxy.planets),
@@ -192,7 +269,14 @@ def run_benchmarks():
             "execution_time": execution_time,
             "memory_mb": memory,
             "route_planning_time": route_planning_time,
-            "route_found": route_result is not None
+            "route_found": route_result is not None,
+            "resource_allocation_time": resource_allocation_time,
+            "allocations_count": len(allocation_result),
+            "proactive_resource_time": proactive_resource_time,
+            "proactive_allocations_count": len(proactive_result),
+            "mission_scheduling_time": mission_scheduling_time,
+            "scheduled_missions_count": len(scheduling_result),
+            "route_searches": searches
         }
 
     return results

@@ -80,6 +80,20 @@ def is_spacecraft_suitable(spacecraft, mission, route_info, departure_time):
 
 
 def schedule_mission(galaxy, mission, departure_time):
+    candidate_spacecraft = []
+
+    for spacecraft in galaxy.spacecraft.values():
+        if (
+            spacecraft.current_location == mission.origin
+            and spacecraft.has_enough_capacity(mission.cargo_amount)
+            and spacecraft.has_capability(mission.required_capabilities)
+            and spacecraft.is_available(departure_time)
+        ):
+            candidate_spacecraft.append(spacecraft)
+
+    if not candidate_spacecraft:
+        return None
+
     route_info = calculate_mission_route(galaxy, mission)
 
     if route_info is None:
@@ -87,7 +101,7 @@ def schedule_mission(galaxy, mission, departure_time):
 
     suitable_spacecraft = []
 
-    for spacecraft in galaxy.spacecraft.values():
+    for spacecraft in candidate_spacecraft:
         if is_spacecraft_suitable(
             spacecraft,
             mission,

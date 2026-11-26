@@ -1,4 +1,5 @@
 
+
 def identify_resource_needs(galaxy, resource):
     surplus_planets = []
     deficit_planets = []
@@ -25,29 +26,53 @@ def allocate_resources(galaxy, resource):
         for planet, amount in surplus_planets
     }
 
+    surplus_order = {
+        planet.name: index
+        for index, (planet, amount) in enumerate(surplus_planets)
+    }
+
+    deficit_names = {
+        planet.name
+        for planet, amount in deficit_planets
+    }
+
+    routes_by_destination = {}
+
+    for routes in galaxy.routes.values():
+        for route in routes:
+            if (
+                route.is_available
+                and route.origin in remaining_surplus
+                and route.destination in deficit_names
+            ):
+                destination_routes = routes_by_destination.setdefault(
+                    route.destination, {}
+                )
+
+                current_route = destination_routes.get(route.origin)
+
+                if (
+                    current_route is None
+                    or route.distance < current_route.distance
+                ):
+                    destination_routes[route.origin] = route
+
     allocations = []
 
     for deficit_planet, deficit_amount in deficit_planets:
-        for surplus_planet, original_amount in surplus_planets:
-            surplus_amount = remaining_surplus[surplus_planet.name]
+        available_routes = list(
+            routes_by_destination.get(deficit_planet.name, {}).values()
+        )
+
+        available_routes.sort(
+            key=lambda route: surplus_order[route.origin]
+        )
+
+        for route in available_routes:
+            surplus_amount = remaining_surplus[route.origin]
 
             if surplus_amount <= 0:
                 continue
-
-            available_routes = [
-                route
-                for route in galaxy.get_routes_from(surplus_planet.name)
-                if route.destination == deficit_planet.name
-                and route.is_available
-            ]
-
-            if not available_routes:
-                continue
-
-            route = min(
-                available_routes,
-                key=lambda route: route.distance
-            )
 
             amount = min(
                 surplus_amount,
@@ -57,19 +82,18 @@ def allocate_resources(galaxy, resource):
 
             if amount > 0:
                 allocations.append({
-                    "from": surplus_planet.name,
+                    "from": route.origin,
                     "to": deficit_planet.name,
                     "resource": resource,
                     "amount": amount,
                     "distance": route.distance
                 })
 
-                remaining_surplus[surplus_planet.name] -= amount
+                remaining_surplus[route.origin] -= amount
                 deficit_amount -= amount
 
                 if deficit_amount <= 0:
                     break
-
 
     return allocations
 
@@ -99,29 +123,53 @@ def plan_proactive_resource_supply(galaxy, resource, periods):
         for planet, amount in surplus_planets
     }
 
+    surplus_order = {
+        planet.name: index
+        for index, (planet, amount) in enumerate(surplus_planets)
+    }
+
+    deficit_names = {
+        planet.name
+        for planet, amount in deficit_planets
+    }
+
+    routes_by_destination = {}
+
+    for routes in galaxy.routes.values():
+        for route in routes:
+            if (
+                route.is_available
+                and route.origin in remaining_surplus
+                and route.destination in deficit_names
+            ):
+                destination_routes = routes_by_destination.setdefault(
+                    route.destination, {}
+                )
+
+                current_route = destination_routes.get(route.origin)
+
+                if (
+                    current_route is None
+                    or route.distance < current_route.distance
+                ):
+                    destination_routes[route.origin] = route
+
     allocations = []
 
     for deficit_planet, deficit_amount in deficit_planets:
-        for surplus_planet, original_amount in surplus_planets:
-            surplus_amount = remaining_surplus[surplus_planet.name]
+        available_routes = list(
+            routes_by_destination.get(deficit_planet.name, {}).values()
+        )
+
+        available_routes.sort(
+            key=lambda route: surplus_order[route.origin]
+        )
+
+        for route in available_routes:
+            surplus_amount = remaining_surplus[route.origin]
 
             if surplus_amount <= 0:
                 continue
-
-            available_routes = [
-                route
-                for route in galaxy.get_routes_from(surplus_planet.name)
-                if route.destination == deficit_planet.name
-                and route.is_available
-            ]
-
-            if not available_routes:
-                continue
-
-            route = min(
-                available_routes,
-                key=lambda route: route.distance
-            )
 
             amount = min(
                 surplus_amount,
@@ -131,14 +179,14 @@ def plan_proactive_resource_supply(galaxy, resource, periods):
 
             if amount > 0:
                 allocations.append({
-                    "from": surplus_planet.name,
+                    "from": route.origin,
                     "to": deficit_planet.name,
                     "resource": resource,
                     "amount": amount,
                     "distance": route.distance
                 })
 
-                remaining_surplus[surplus_planet.name] -= amount
+                remaining_surplus[route.origin] -= amount
                 deficit_amount -= amount
 
                 if deficit_amount <= 0:

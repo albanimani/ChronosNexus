@@ -1,6 +1,6 @@
 import heapq
-import math
 
+search_count = 0
 
 def calculate_max_speed(galaxy):
     max_speed = 0
@@ -30,6 +30,8 @@ def calculate_route_cost(route, weights):
 
 
 def a_star_search(galaxy, start_name, goal_name, weights):
+    global search_count
+    search_count += 1
     if start_name not in galaxy.planets or goal_name not in galaxy.planets:
         return None
 
@@ -39,19 +41,14 @@ def a_star_search(galaxy, start_name, goal_name, weights):
     start_planet = galaxy.planets[start_name]
     goal_planet = galaxy.planets[goal_name]
 
-    max_speed = calculate_max_speed(galaxy)
 
     open_list = []
     heapq.heappush(open_list, (0, start_name))
 
     came_from = {}
     g_score = {start_name: 0}
-
-    f_score = {
-        start_name: heuristic(
-            galaxy, start_planet, goal_planet, weights, max_speed
-        )
-    }
+    f_score = {start_name: 0}
+         
 
     while open_list:
         current_priority, current_name = heapq.heappop(open_list)
@@ -89,13 +86,7 @@ def a_star_search(galaxy, start_name, goal_name, weights):
 
                 neighbor_planet = galaxy.planets[neighbor_name]
 
-                h_score = heuristic(
-                    galaxy,
-                    neighbor_planet,
-                    goal_planet,
-                    weights,
-                    max_speed
-                )
+                h_score = 0
 
                 f_score[neighbor_name] = tentative_g + h_score
 
@@ -105,3 +96,4 @@ def a_star_search(galaxy, start_name, goal_name, weights):
                 )
 
     return None
+
