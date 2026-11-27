@@ -441,6 +441,125 @@ class TestReplanning(unittest.TestCase):
         self.assertTrue(first_result)
         self.assertFalse(second_result)
         self.assertEqual(planet.resource_production["food"], 40)
+    
+    def test_replan_when_route_risk_increases(self):
+        earth = Planet(
+            "Earth", 100, {}, {}, {}, 500, 5, 3, 8, 0, 0
+        )
+        mars = Planet(
+            "Mars", 80, {}, {}, {}, 400, 4, 3, 7, 20, 0
+        )
+        jupiter = Planet(
+            "Jupiter", 50, {}, {}, {}, 300, 6, 5, 9, 10, 10
+        )
+
+        self.galaxy.add_planet(earth)
+        self.galaxy.add_planet(mars)
+        self.galaxy.add_planet(jupiter)
+
+        direct_route = self.route
+
+        self.galaxy.add_route(
+            Route("Earth", "Jupiter", 15, 5, 10, 0.1, 50, 0.9, True)
+        )
+        self.galaxy.add_route(
+            Route("Jupiter", "Mars", 15, 5, 10, 0.1, 50, 0.9, True)
+        )
+
+        direct_route.risk = 0.8
+
+        mission = Mission(
+            "Risky Mission", "Earth", "Mars",
+            "food", 10, 100, 5, 8, []
+        )
+
+        result = update_mission_plan(
+            self.galaxy,
+            mission,
+            ["Earth", "Mars"]
+        )
+
+        self.assertEqual(
+            result["path"],
+            ["Earth", "Jupiter", "Mars"]
+        )
+        self.assertTrue(result["replanned"])
+
+    
+    def test_replan_when_assigned_spacecraft_is_destroyed(self):
+        from models.spacecraft import Spacecraft
+
+        earth = Planet(
+            "Earth", 100, {}, {}, {}, 500, 5, 3, 8, 0, 0
+        )
+        mars = Planet(
+            "Mars", 80, {}, {}, {}, 400, 4, 3, 7, 20, 0
+        )
+
+        self.galaxy.add_planet(earth)
+        self.galaxy.add_planet(mars)
+
+        destroyed_spacecraft = Spacecraft(
+            "Explorer",
+            "Earth",
+            100,
+            200,
+            150,
+            10,
+            0.9,
+            50,
+            ["transport"],
+            0
+        )
+
+        replacement_spacecraft = Spacecraft(
+            "Voyager",
+            "Earth",
+            100,
+            200,
+            150,
+            10,
+            0.9,
+            40,
+            ["transport"],
+            0
+        )
+
+        destroyed_spacecraft.is_operational = False
+
+        self.galaxy.add_spacecraft(destroyed_spacecraft)
+        self.galaxy.add_spacecraft(replacement_spacecraft)
+
+        mission = Mission(
+            "Mission 1", "Earth", "Mars",
+            "food", 10, 100, 5, 8, []
+        )
+
+        mission.assign_spacecraft(destroyed_spacecraft, 0)
+        self.galaxy.add_mission(mission)
+
+        mission_plans = {
+            "Mission 1": ["Earth", "Mars"]
+        }
+
+        updated_plans = replan_affected_missions(
+            self.galaxy,
+            mission_plans
+        )
+
+        self.assertEqual(
+            mission.assigned_spacecraft,
+            replacement_spacecraft
+        )
+        self.assertEqual(
+            updated_plans["Mission 1"]["path"],
+            ["Earth", "Mars"]
+        )
+        self.assertTrue(
+            updated_plans["Mission 1"]["replanned"]
+        )
+
+
 
 
 if __name__ == "__main__":
