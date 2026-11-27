@@ -559,6 +559,67 @@ class TestReplanning(unittest.TestCase):
             updated_plans["Mission 1"]["replanned"]
         )
 
+    def test_completed_mission_is_not_replanned_when_spacecraft_is_destroyed(self):
+        from models.spacecraft import Spacecraft
+
+        earth = Planet(
+            "Earth", 100, {}, {}, {}, 500, 5, 3, 8, 0, 0
+        )
+        mars = Planet(
+            "Mars", 80, {}, {}, {}, 400, 4, 3, 7, 20, 0
+        )
+
+        self.galaxy.add_planet(earth)
+        self.galaxy.add_planet(mars)
+
+        spacecraft = Spacecraft(
+            "Explorer",
+            "Earth",
+            100,
+            200,
+            150,
+            10,
+            0.9,
+            50,
+            ["transport"],
+            0
+        )
+
+        self.galaxy.add_spacecraft(spacecraft)
+
+        mission = Mission(
+            "Mission 1", "Earth", "Mars",
+            "food", 10, 100, 5, 8, []
+        )
+
+        mission.assign_spacecraft(spacecraft, 0)
+        mission.complete_mission()
+
+        spacecraft.is_operational = False
+
+        self.galaxy.add_mission(mission)
+
+        mission_plans = {
+            "Mission 1": ["Earth", "Mars"]
+        }
+
+        updated_plans = replan_affected_missions(
+            self.galaxy,
+            mission_plans
+        )
+
+        self.assertEqual(
+            mission.assigned_spacecraft,
+            spacecraft
+        )
+        self.assertEqual(
+            updated_plans["Mission 1"]["path"],
+            ["Earth", "Mars"]
+        )
+        self.assertFalse(
+            updated_plans["Mission 1"]["replanned"]
+        )
+
 
 
 

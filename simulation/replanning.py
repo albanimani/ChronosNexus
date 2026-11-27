@@ -1,3 +1,4 @@
+
 from algorithms.mission_scheduling import (
     calculate_mission_route,
     schedule_mission
@@ -17,21 +18,31 @@ def find_unavailable_routes(galaxy):
 
 def replan_mission_route(galaxy, mission):
     return calculate_mission_route(galaxy, mission)
+
+
 def is_plan_affected(path, unavailable_routes):
+    unavailable_pairs = {
+        (route.origin, route.destination)
+        for route in unavailable_routes
+    }
+
     for i in range(len(path) - 1):
-        for route in unavailable_routes:
-            if (
-                route.origin == path[i]
-                and route.destination == path[i + 1]
-            ):
-                return True
+        if (path[i], path[i + 1]) in unavailable_pairs:
+            return True
 
     return False
 
 
-
 def needs_replanning(galaxy, path):
-    unavailable_routes = find_unavailable_routes(galaxy)
+    unavailable_routes = []
+
+    for i in range(len(path) - 1):
+        for route in galaxy.get_routes_from(path[i]):
+            if (
+                route.destination == path[i + 1]
+                and not route.is_available
+            ):
+                unavailable_routes.append(route)
 
     if is_plan_affected(path, unavailable_routes):
         return True
@@ -70,8 +81,13 @@ def needs_replanning(galaxy, path):
     return False
 
 
-
 def update_mission_plan(galaxy, mission, current_path):
+    if mission.status == "completed":
+        return {
+            "path": current_path,
+            "replanned": False
+        }
+
     if (
         mission.assigned_spacecraft is not None
         and not mission.assigned_spacecraft.is_operational
