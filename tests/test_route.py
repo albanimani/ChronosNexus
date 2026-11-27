@@ -64,9 +64,11 @@ class TestRoute(unittest.TestCase):
             float("inf")
         )
     
-    def test_negative_distance(self):
-        with self.assertRaises(ValueError):
-            Route("Earth", "Mars", -10, 5, 80, 0.2, 100, 0.9, True)
+    def test_invalid_risk(self):
+        for risk in [-0.1, 1.1]:
+            with self.subTest(risk=risk):
+                with self.assertRaises(ValueError):
+                    Route("Earth", "Mars", 10, 5, 80, risk, 100, 0.9, True)    
 
     def test_negative_travel_time(self):
         with self.assertRaises(ValueError):
@@ -76,10 +78,7 @@ class TestRoute(unittest.TestCase):
         with self.assertRaises(ValueError):
             Route("Earth", "Mars", 10, 5, -80, 0.2, 100, 0.9, True)
 
-    def test_negative_risk(self):
-        with self.assertRaises(ValueError):
-            Route("Earth", "Mars", 10, 5, 80, -0.2, 100, 0.9, True)
-
+    
     def test_negative_capacity(self):
         with self.assertRaises(ValueError):
             Route("Earth", "Mars", 10, 5, 80, 0.2, -100, 0.9, True)

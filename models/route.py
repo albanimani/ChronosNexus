@@ -21,8 +21,8 @@ class Route:
         if fuel_consumption < 0:
             raise ValueError("Fuel consumption cannot be negative")
 
-        if risk < 0:
-            raise ValueError("Risk cannot be negative")
+        if not 0 <= risk <= 1:
+            raise ValueError("Risk must be between 0 and 1")
 
         if capacity < 0:
             raise ValueError("Capacity cannot be negative")
